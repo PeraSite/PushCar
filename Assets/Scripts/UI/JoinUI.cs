@@ -4,7 +4,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace UI {
+namespace PushCar.UI {
 	public class JoinUI : MonoBehaviour {
 		[SerializeField] private TMP_InputField _ipInput;
 		[SerializeField] private TMP_InputField _portInput;
