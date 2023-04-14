@@ -377,7 +377,6 @@ GameObject:
   - component: {fileID: 848820241}
   - component: {fileID: 848820240}
   - component: {fileID: 848820243}
-  - component: {fileID: 848820242}
   - component: {fileID: 848820244}
   m_Layer: 0
   m_Name: Car
@@ -453,27 +452,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 1
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!50 &848820242
-Rigidbody2D:
-  serializedVersion: 4
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 848820239}
-  m_BodyType: 0
-  m_Simulated: 1
-  m_UseFullKinematicContacts: 0
-  m_UseAutoMass: 0
-  m_Mass: 1
-  m_LinearDrag: 1
-  m_AngularDrag: 0
-  m_GravityScale: 1
-  m_Material: {fileID: 0}
-  m_Interpolate: 0
-  m_SleepingMode: 2
-  m_CollisionDetection: 0
-  m_Constraints: 0
 --- !u!61 &848820243
 BoxCollider2D:
   m_ObjectHideFlags: 0
@@ -512,7 +490,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f4375c9a17c0fa748acf5e554b17880b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _movePower: 0.02
+  _swipeMultiplier: 20
   _carSfx: {fileID: 8300000, guid: f5d0bd56dabf24f438c72270c6e91b91, type: 3}
   _car: {fileID: 848820241}
   _flag: {fileID: 642836328}

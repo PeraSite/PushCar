@@ -1,13 +1,9 @@
-using System.Net;
-using System.Net.Sockets;
-using System.Text;
+using System;
 using UnityEngine;
 
 namespace PushCar {
 	public class CarController : MonoBehaviour {
-		const int PORT = 8080;
-
-		[SerializeField] private float _movePower = 1f;
+		[SerializeField] private float _swipeMultiplier = 1f;
 		[SerializeField] private AudioClip _carSfx;
 		[SerializeField] private Transform _car;
 		[SerializeField] private Transform _flag;
@@ -15,11 +11,10 @@ namespace PushCar {
 		public bool CanMove;
 		public bool Stopped;
 
-		private Rigidbody2D _rigidbody;
 		private Vector2 _lastClickedPosition;
+		private float _targetX;
 
 		private void Awake() {
-			_rigidbody = GetComponent<Rigidbody2D>();
 			CanMove = true;
 		}
 
@@ -29,11 +24,10 @@ namespace PushCar {
 			}
 
 			if (Input.GetMouseButtonUp(0) && CanMove) {
-				// Add force to the car
-				var delta = (Vector2)Input.mousePosition - _lastClickedPosition;
-				delta.y = 0f;
-				if (delta.x <= 0) delta.x = 0f;
-				_rigidbody.AddForce(delta * _movePower, ForceMode2D.Impulse);
+				Vector2 endPos = Input.mousePosition;
+				var swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
+
+				_targetX = CalculateFinalPosition(swipeLength);
 
 				// Play audio
 				AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
@@ -42,30 +36,27 @@ namespace PushCar {
 				CanMove = false;
 			}
 
-		#if UNITY_64
-
-  #endif
+			if (!CanMove) {
+				var position = transform.position;
+				var newX = Mathf.Lerp(position.x, _targetX, Time.deltaTime);
+				transform.position = new Vector3(newX, position.y, position.z);
+			}
 
 			if (IsStopped() && !CanMove && !Stopped) {
-				var distance = CalculateDistance();
-				Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
-				if (distance <= 0f) distance = -999;
-
-				var buffer = Encoding.UTF8.GetBytes(distance.ToString("F2"));
-				socket.SendTo(buffer, new IPEndPoint(IPAddress.Loopback, PORT));
-
-
-				var receiveBuffer = new byte[1024];
-				EndPoint receivedEndpoint = new IPEndPoint(IPAddress.Any, 0);
-				int receivedSize = socket.ReceiveFrom(receiveBuffer, ref receivedEndpoint);
-				var received = Encoding.UTF8.GetString(receiveBuffer, 0, receivedSize);
-				Debug.Log(received);
 				Stopped = true;
+
+				Debug.Log("Stopped!");
 			}
 		}
 
-		private bool IsStopped() => _rigidbody.velocity.x <= 0.0001;
+		private float CalculateFinalPosition(float swipeDistance) {
+			var from = transform.position.x;
+			var to = from + swipeDistance;
+			return to;
+		}
 
-		private float CalculateDistance() => _flag.position.x - _car.position.x;
+		private bool IsStopped() => Math.Abs(this.transform.position.x - _targetX) < 0.01f;
+
+		private float CalculateScore() => _flag.position.x - _car.position.x;
 	}
 }
