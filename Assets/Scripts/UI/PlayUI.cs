@@ -25,9 +25,15 @@ namespace PushCar.UI {
 			}
 
 			var distance = _flag.position.x - _car.transform.position.x;
+			if (distance <= 0f) {
+				_retryButton.SetActive(true);
+				_distanceText.text = "Game Over!";
+				return;
+			}
+
 			if (_car.Stopped) {
 				_retryButton.SetActive(true);
-				_distanceText.text = distance <= 0f ? "Game Over!" : $"Result: {distance:F2}m";
+				_distanceText.text = $"Result: {distance:F2}m";
 				return;
 			}
 
