@@ -56,7 +56,7 @@ namespace PushCar {
 		private void HandlePacket(IPacket incomingPacket) {
 			switch (incomingPacket) {
 				case ServerPongPacket: {
-					SceneManager.LoadScene("Login");
+					SceneManager.LoadScene("Authenticate");
 					break;
 				}
 				case ServerAuthenticatePacket packet: {

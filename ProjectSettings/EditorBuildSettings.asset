@@ -9,7 +9,7 @@ EditorBuildSettings:
     path: Assets/Scenes/Main.unity
     guid: b9e2ad627844c4148981bb7fa997658c
   - enabled: 1
-    path: Assets/Scenes/Login.unity
+    path: Assets/Scenes/Authenticate.unity
     guid: ce7caec8d8c091b4e98a11d55e144e01
   - enabled: 1
     path: Assets/Scenes/Play.unity

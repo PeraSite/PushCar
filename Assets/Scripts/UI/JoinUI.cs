@@ -24,7 +24,7 @@ namespace PushCar.UI {
 			UniTask.Void(async () => {
 				var result = await NetworkManager.Instance.Join(endpoint);
 				if (result) {
-					SceneManager.LoadScene("Login");
+					SceneManager.LoadScene("Authenticate");
 				}
 			});
 		}
