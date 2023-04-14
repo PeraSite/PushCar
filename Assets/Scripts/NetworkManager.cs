@@ -3,12 +3,15 @@ using System.Collections.Concurrent;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
+using System.Security.Cryptography;
+using System.Text;
 using Cysharp.Threading.Tasks;
 using PushCar.Common;
 using PushCar.Common.Extensions;
 using PushCar.Common.Packets.Client;
 using PushCar.Common.Packets.Server;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace PushCar {
 	public sealed class NetworkManager : MonoBehaviour {
@@ -22,8 +25,15 @@ namespace PushCar {
 
 		private void Awake() {
 			_client = new TcpClient();
-			Instance = this;
 			_packetQueue = new ConcurrentQueue<IPacket>();
+
+			if (Instance != null && Instance != this) {
+				Destroy(gameObject);
+				return;
+			}
+
+			Instance = this;
+			DontDestroyOnLoad(gameObject);
 		}
 
 		private void OnDestroy() {
@@ -38,19 +48,28 @@ namespace PushCar {
 			if (!_packetQueue.TryDequeue(out var incomingPacket)) return;
 
 			Debug.Log($"Received packet: {incomingPacket}");
+			HandlePacket(incomingPacket);
+		}
+
+		private void HandlePacket(IPacket incomingPacket) {
 			switch (incomingPacket) {
-				case ServerPongPacket packet: {
-					Debug.Log("Pong!");
+				case ServerPongPacket: {
+					SceneManager.LoadScene("Login");
+					break;
+				}
+				case ServerAuthenticatePacket packet: {
+					var success = packet.Success;
+					if (success) {
+						SceneManager.LoadScene("Play");
+					} else {
+						Debug.LogError("Can't authenticate to the server!");
+					}
 					break;
 				}
 				default: {
 					throw new ArgumentOutOfRangeException();
 				}
 			}
-		}
-
-		public void SendPacket(IPacket packet) {
-			_writer.Write(packet);
 		}
 
 		public async UniTask<bool> Join(IPEndPoint endpoint) {
@@ -74,7 +93,7 @@ namespace PushCar {
 			Debug.Log("Connected!");
 
 			// Ping after connected
-			_writer.Write(new ClientPingPacket());
+			SendPacket(new ClientPingPacket());
 
 			// Run packet listen thread
 			await UniTask.RunOnThreadPool(() => {
@@ -100,8 +119,35 @@ namespace PushCar {
 			}, cancellationToken: this.GetCancellationTokenOnDestroy());
 			return true;
 		}
-		public void Login(string id, string password) {
-			throw new NotImplementedException();
+
+		public void Authenticate(string id, string password) {
+			var encryptedPassword = SHA256(password);
+			SendPacket(new ClientAuthenticatePacket(id, encryptedPassword));
+		}
+
+		private void SendPacket(IPacket packet) {
+			Debug.Log($"Sending packet: {packet}");
+			if (!_client.Connected) {
+				Debug.LogError("Can't send packet when not connected!");
+				return;
+			}
+
+			_writer.Write(packet);
+		}
+
+		private string SHA256(string data) {
+			SHA256 sha = new SHA256Managed();
+			byte[] hash = sha.ComputeHash(Encoding.ASCII.GetBytes(data));
+			StringBuilder stringBuilder = new StringBuilder();
+			foreach (byte b in hash) {
+				stringBuilder.AppendFormat("{0:x2}", b);
+			}
+			return stringBuilder.ToString();
+		}
+
+		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+		private static void ResetStatic() {
+			Instance = null;
 		}
 	}
 }
