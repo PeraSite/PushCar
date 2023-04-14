@@ -23,6 +23,8 @@ namespace PushCar {
 		private BinaryWriter _writer;
 		private ConcurrentQueue<IPacket> _packetQueue;
 
+		private string _id;
+
 		private void Awake() {
 			_client = new TcpClient();
 			_packetQueue = new ConcurrentQueue<IPacket>();
@@ -47,7 +49,7 @@ namespace PushCar {
 		private void Update() {
 			if (!_packetQueue.TryDequeue(out var incomingPacket)) return;
 
-			Debug.Log($"Received packet: {incomingPacket}");
+			Debug.Log($"[S -> C] {incomingPacket}");
 			HandlePacket(incomingPacket);
 		}
 
@@ -121,12 +123,17 @@ namespace PushCar {
 		}
 
 		public void Authenticate(string id, string password) {
+			_id = id;
 			var encryptedPassword = SHA256(password);
 			SendPacket(new ClientAuthenticatePacket(id, encryptedPassword));
 		}
 
+		public void AddRecord(float swipeDistance) {
+			SendPacket(new ClientRecordPacket(_id, swipeDistance));
+		}
+
 		private void SendPacket(IPacket packet) {
-			Debug.Log($"Sending packet: {packet}");
+			Debug.Log($"[C -> S] {packet}");
 			if (!_client.Connected) {
 				Debug.LogError("Can't send packet when not connected!");
 				return;
@@ -135,14 +142,14 @@ namespace PushCar {
 			_writer.Write(packet);
 		}
 
-		private string SHA256(string data) {
-			SHA256 sha = new SHA256Managed();
-			byte[] hash = sha.ComputeHash(Encoding.ASCII.GetBytes(data));
-			StringBuilder stringBuilder = new StringBuilder();
-			foreach (byte b in hash) {
-				stringBuilder.AppendFormat("{0:x2}", b);
+		private static string SHA256(string data) {
+			var sha = new SHA256Managed();
+			var hash = sha.ComputeHash(Encoding.ASCII.GetBytes(data));
+			var sb = new StringBuilder();
+			foreach (var b in hash) {
+				sb.AppendFormat("{0:x2}", b);
 			}
-			return stringBuilder.ToString();
+			return sb.ToString();
 		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]

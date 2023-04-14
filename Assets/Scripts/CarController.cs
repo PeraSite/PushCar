@@ -10,9 +10,10 @@ namespace PushCar {
 
 		public bool CanMove;
 		public bool Stopped;
+		public float TargetX;
 
 		private Vector2 _lastClickedPosition;
-		private float _targetX;
+		private float _swipeLength;
 
 		private void Awake() {
 			CanMove = true;
@@ -25,9 +26,8 @@ namespace PushCar {
 
 			if (Input.GetMouseButtonUp(0) && CanMove) {
 				Vector2 endPos = Input.mousePosition;
-				var swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
-
-				_targetX = CalculateFinalPosition(swipeLength);
+				_swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
+				TargetX = CalculateFinalPosition(_swipeLength);
 
 				// Play audio
 				AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
@@ -38,14 +38,14 @@ namespace PushCar {
 
 			if (!CanMove) {
 				var position = transform.position;
-				var newX = Mathf.Lerp(position.x, _targetX, Time.deltaTime);
+				var newX = Mathf.Lerp(position.x, TargetX, Time.deltaTime);
 				transform.position = new Vector3(newX, position.y, position.z);
 			}
 
 			if (IsStopped() && !CanMove && !Stopped) {
 				Stopped = true;
 
-				Debug.Log("Stopped!");
+				NetworkManager.Instance.AddRecord(_swipeLength);
 			}
 		}
 
@@ -55,7 +55,7 @@ namespace PushCar {
 			return to;
 		}
 
-		private bool IsStopped() => Math.Abs(this.transform.position.x - _targetX) < 0.01f;
+		private bool IsStopped() => Math.Abs(this.transform.position.x - TargetX) < 0.01f;
 
 		private float CalculateScore() => _flag.position.x - _car.position.x;
 	}

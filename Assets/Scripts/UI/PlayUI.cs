@@ -33,7 +33,7 @@ namespace PushCar.UI {
 
 			if (_car.Stopped) {
 				_retryButton.SetActive(true);
-				_distanceText.text = $"Result: {distance:F2}m";
+				_distanceText.text = $"Result: {_flag.position.x - _car.TargetX:F2}m";
 				return;
 			}
 
