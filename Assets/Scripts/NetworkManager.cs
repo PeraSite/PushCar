@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Sockets;
@@ -8,6 +9,7 @@ using System.Text;
 using Cysharp.Threading.Tasks;
 using PushCar.Common;
 using PushCar.Common.Extensions;
+using PushCar.Common.Models;
 using PushCar.Common.Packets.Client;
 using PushCar.Common.Packets.Server;
 using UnityEngine;
@@ -16,6 +18,8 @@ using UnityEngine.SceneManagement;
 namespace PushCar {
 	public sealed class NetworkManager : MonoBehaviour {
 		public static NetworkManager Instance { get; private set; }
+
+		public event Action<IPacket> OnPacketReceived;
 
 		private TcpClient _client;
 		private NetworkStream _stream;
@@ -54,6 +58,7 @@ namespace PushCar {
 		}
 
 		private void HandlePacket(IPacket incomingPacket) {
+			OnPacketReceived?.Invoke(incomingPacket);
 			switch (incomingPacket) {
 				case ServerPongPacket: {
 					SceneManager.LoadScene("Authenticate");
@@ -67,9 +72,6 @@ namespace PushCar {
 						Debug.LogError("Can't authenticate to the server!");
 					}
 					break;
-				}
-				default: {
-					throw new ArgumentOutOfRangeException();
 				}
 			}
 		}
@@ -130,6 +132,10 @@ namespace PushCar {
 
 		public void AddRecord(float swipeDistance) {
 			SendPacket(new ClientRecordPacket(_id, swipeDistance));
+		}
+
+		public void RequestRank() {
+			SendPacket(new ClientRequestRankPacket());
 		}
 
 		private void SendPacket(IPacket packet) {

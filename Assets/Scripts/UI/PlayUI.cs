@@ -1,3 +1,9 @@
+using System;
+using System.Text;
+using Cysharp.Threading.Tasks;
+using PushCar.Common;
+using PushCar.Common.Models;
+using PushCar.Common.Packets.Server;
 using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -7,18 +13,40 @@ namespace PushCar.UI {
 		[SerializeField] private CarController _car;
 		[SerializeField] private Transform _flag;
 		[SerializeField] private GameObject _retryButton;
-
 		[SerializeField] private TextMeshProUGUI _distanceText;
+		[SerializeField] private TextMeshProUGUI _rankText;
+
 
 		private void Start() {
 			_retryButton.SetActive(false);
+			NetworkManager.Instance.RequestRank();
+		}
+
+		private void OnEnable() {
+			NetworkManager.Instance.OnPacketReceived += OnPacketReceived;
+		}
+
+		private void OnDisable() {
+			NetworkManager.Instance.OnPacketReceived -= OnPacketReceived;
+		}
+
+		private void OnPacketReceived(IPacket incoming) {
+			if (incoming is ServerResponseRankPacket packet) {
+				var records = packet.Records;
+				var sb = new StringBuilder();
+				for (var i = 0; i < records.Count; i++) {
+					var record = records[i];
+					sb.AppendLine($"{i + 1}. {record.Id} - {record.Distance:F2}m");
+				}
+				_rankText.text = sb.ToString();
+			}
 		}
 
 		private void Update() {
-			UpdateUI();
+			UpdateDistanceUI();
 		}
 
-		private void UpdateUI() {
+		private void UpdateDistanceUI() {
 			if (_car.CanMove) {
 				_distanceText.text = "Swipe to move!";
 				return;
