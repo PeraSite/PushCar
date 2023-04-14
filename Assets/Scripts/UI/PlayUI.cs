@@ -2,8 +2,8 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-namespace PushCar {
-	public class UIManager : MonoBehaviour {
+namespace PushCar.UI {
+	public class PlayUI : MonoBehaviour {
 		[SerializeField] private CarController _car;
 		[SerializeField] private Transform _flag;
 		[SerializeField] private GameObject _retryButton;
