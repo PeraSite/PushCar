@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Security;
 using System.Net.Sockets;
 using System.Security.Cryptography;
 using System.Text;
@@ -23,6 +24,7 @@ namespace PushCar {
 
 		private TcpClient _client;
 		private NetworkStream _stream;
+		private SslStream _sslStream;
 		private BinaryReader _reader;
 		private BinaryWriter _writer;
 		private ConcurrentQueue<IPacket> _packetQueue;
@@ -92,8 +94,11 @@ namespace PushCar {
 			}
 
 			_stream = _client.GetStream();
-			_writer = new BinaryWriter(_stream);
-			_reader = new BinaryReader(_stream);
+			_sslStream = new SslStream(_stream, false, (_, _, _, _) => true);
+			await _sslStream.AuthenticateAsClientAsync(SystemInfo.deviceName);
+
+			_writer = new BinaryWriter(_sslStream);
+			_reader = new BinaryReader(_sslStream);
 			Debug.Log("Connected!");
 
 			// Ping after connected
