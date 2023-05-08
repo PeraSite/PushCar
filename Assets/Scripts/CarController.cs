@@ -9,6 +9,7 @@ namespace PushCar {
 		[SerializeField] private Transform _car;
 		[SerializeField] private Transform _flag;
 
+		public bool Clicked;
 		public bool CanMove;
 		public bool Stopped;
 		public float TargetX;
@@ -25,19 +26,20 @@ namespace PushCar {
 			if (!EventSystem.current.IsPointerOverGameObject()) {
 				if (Input.GetMouseButtonDown(0)) {
 					_lastClickedPosition = Input.mousePosition;
+					Clicked = true;
 				}
+			}
 
-				if (Input.GetMouseButtonUp(0) && CanMove) {
-					Vector2 endPos = Input.mousePosition;
-					_swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
-					TargetX = CalculateFinalPosition(_swipeLength);
+			if (Input.GetMouseButtonUp(0) && CanMove && Clicked) {
+				Vector2 endPos = Input.mousePosition;
+				_swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
+				TargetX = CalculateFinalPosition(_swipeLength);
 
-					// Play audio
-					AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
+				// Play audio
+				AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
 
-					// Make player can't move
-					CanMove = false;
-				}
+				// Make player can't move
+				CanMove = false;
 			}
 
 			// 이동 처리
