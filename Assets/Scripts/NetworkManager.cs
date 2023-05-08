@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Security;
@@ -10,7 +9,6 @@ using System.Text;
 using Cysharp.Threading.Tasks;
 using PushCar.Common;
 using PushCar.Common.Extensions;
-using PushCar.Common.Models;
 using PushCar.Common.Packets.Client;
 using PushCar.Common.Packets.Server;
 using UnityEngine;
@@ -30,6 +28,7 @@ namespace PushCar {
 		private ConcurrentQueue<IPacket> _packetQueue;
 
 		private string _id;
+		private Guid _token;
 
 		private void Awake() {
 			_client = new TcpClient();
@@ -66,13 +65,13 @@ namespace PushCar {
 					SceneManager.LoadScene("Authenticate");
 					break;
 				}
-				case ServerAuthenticatePacket packet: {
-					var success = packet.Success;
-					if (success) {
-						SceneManager.LoadScene("Play");
-					} else {
-						Debug.LogError("Can't authenticate to the server!");
-					}
+				case ServerAuthenticateSuccessPacket packet: {
+					_token = packet.Token;
+					SceneManager.LoadScene("Play");
+					break;
+				}
+				case ServerAuthenticateFailPacket packet: {
+					Debug.LogError($"Server Error : {packet.Reason}");
 					break;
 				}
 			}
@@ -136,7 +135,7 @@ namespace PushCar {
 		}
 
 		public void AddRecord(float swipeDistance) {
-			SendPacket(new ClientRecordPacket(_id, swipeDistance));
+			SendPacket(new ClientRecordPacket(_token, swipeDistance));
 		}
 
 		public void RequestRank() {
