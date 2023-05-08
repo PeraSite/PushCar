@@ -11,6 +11,7 @@ using PushCar.Common;
 using PushCar.Common.Extensions;
 using PushCar.Common.Packets.Client;
 using PushCar.Common.Packets.Server;
+using PushCar.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
@@ -27,7 +28,6 @@ namespace PushCar {
 		private BinaryWriter _writer;
 		private ConcurrentQueue<IPacket> _packetQueue;
 
-		private string _id;
 		private Guid _token;
 
 		private void Awake() {
@@ -62,6 +62,7 @@ namespace PushCar {
 			OnPacketReceived?.Invoke(incomingPacket);
 			switch (incomingPacket) {
 				case ServerPongPacket: {
+					Toast.Instance.Info("서버에 접속했습니다!");
 					SceneManager.LoadScene("Authenticate");
 					break;
 				}
@@ -71,25 +72,25 @@ namespace PushCar {
 					break;
 				}
 				case ServerAuthenticateFailPacket packet: {
-					Debug.LogError($"Server Error : {packet.Reason}");
+					Toast.Instance.Error(packet.Reason);
 					break;
 				}
 			}
 		}
 
-		public async UniTask<bool> Join(IPEndPoint endpoint) {
+		public async UniTaskVoid Join(IPEndPoint endpoint) {
 			if (_client.Connected) {
 				Debug.Log("Can't join twice!");
-				return false;
+				return;
 			}
 
-			Debug.Log($"Trying to join {endpoint}");
 			try {
 				await _client.ConnectAsync(endpoint.Address, endpoint.Port);
 			}
 			catch (Exception e) {
 				Debug.Log($"Error : {e.Message}");
-				return false;
+				Toast.Instance.Error("해당 서버에 연결하지 못했습니다!");
+				return;
 			}
 
 			_stream = _client.GetStream();
@@ -98,7 +99,6 @@ namespace PushCar {
 
 			_writer = new BinaryWriter(_sslStream);
 			_reader = new BinaryReader(_sslStream);
-			Debug.Log("Connected!");
 
 			// Ping after connected
 			SendPacket(new ClientPingPacket());
@@ -125,11 +125,9 @@ namespace PushCar {
 					_packetQueue.Enqueue(basePacket);
 				}
 			}, cancellationToken: this.GetCancellationTokenOnDestroy());
-			return true;
 		}
 
 		public void Authenticate(string id, string password) {
-			_id = id;
 			var encryptedPassword = SHA256(password);
 			SendPacket(new ClientAuthenticatePacket(id, encryptedPassword));
 		}
@@ -145,7 +143,7 @@ namespace PushCar {
 		private void SendPacket(IPacket packet) {
 			Debug.Log($"[C -> S] {packet}");
 			if (!_client.Connected) {
-				Debug.LogError("Can't send packet when not connected!");
+				Toast.Instance.Error("서버에 연결되지 않았습니다!");
 				return;
 			}
 

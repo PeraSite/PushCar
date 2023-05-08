@@ -1,8 +1,6 @@
 ﻿using System.Net;
-using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 
 namespace PushCar.UI {
 	public class JoinUI : MonoBehaviour {
@@ -11,22 +9,17 @@ namespace PushCar.UI {
 
 		public void Join() {
 			if (!IPAddress.TryParse(_ipInput.text, out var ip)) {
-				Debug.LogError("IP is invalid");
+				Toast.Instance.Error("올바르지 않은 IP입니다!");
 				return;
 			}
 
 			if (!int.TryParse(_portInput.text, out var port)) {
-				Debug.LogError("Port is invalid integer");
+				Toast.Instance.Error("올바르지 않은 포트입니다!");
 				return;
 			}
 
 			var endpoint = new IPEndPoint(ip, port);
-			UniTask.Void(async () => {
-				var result = await NetworkManager.Instance.Join(endpoint);
-				if (result) {
-					SceneManager.LoadScene("Authenticate");
-				}
-			});
+			NetworkManager.Instance.Join(endpoint).Forget();
 		}
 	}
 }
