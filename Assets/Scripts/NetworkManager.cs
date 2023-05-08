@@ -113,16 +113,21 @@ namespace PushCar {
 						break;
 					}
 
-					var packetID = _reader.BaseStream.ReadByte();
+					try {
+						var packetID = _reader.BaseStream.ReadByte();
 
-					// 읽을 수 없다면(데이터가 끝났다면 리턴)
-					if (packetID == -1) break;
+						// 읽을 수 없다면(데이터가 끝났다면 리턴)
+						if (packetID == -1) break;
 
-					var packetType = (PacketType)packetID;
+						var packetType = (PacketType)packetID;
 
-					// 타입에 맞는 패킷 객체 생성 후 큐에 추가
-					var basePacket = packetType.CreatePacket(_reader);
-					_packetQueue.Enqueue(basePacket);
+						// 타입에 맞는 패킷 객체 생성 후 큐에 추가
+						var basePacket = packetType.CreatePacket(_reader);
+						_packetQueue.Enqueue(basePacket);
+					}
+					catch (Exception) {
+						break;
+					}
 				}
 			}, cancellationToken: this.GetCancellationTokenOnDestroy());
 		}
