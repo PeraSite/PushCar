@@ -136,8 +136,8 @@ namespace PushCar {
 			SendPacket(new ClientRecordPacket(_token, swipeDistance));
 		}
 
-		public void RequestRank() {
-			SendPacket(new ClientRequestRankPacket());
+		public void RequestRank(int page = 0, int recordsPerPage = 6) {
+			SendPacket(new ClientRequestRankPacket(page, recordsPerPage));
 		}
 
 		private void SendPacket(IPacket packet) {

@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace PushCar {
 	public class CarController : MonoBehaviour {
@@ -20,6 +21,8 @@ namespace PushCar {
 		}
 
 		private void Update() {
+			if (EventSystem.current.IsPointerOverGameObject()) return;
+
 			if (Input.GetMouseButtonDown(0)) {
 				_lastClickedPosition = Input.mousePosition;
 			}

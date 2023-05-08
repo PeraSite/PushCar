@@ -1,8 +1,5 @@
-using System;
 using System.Text;
-using Cysharp.Threading.Tasks;
 using PushCar.Common;
-using PushCar.Common.Models;
 using PushCar.Common.Packets.Server;
 using TMPro;
 using UnityEngine;
@@ -19,15 +16,11 @@ namespace PushCar.UI {
 
 		private void Start() {
 			_retryButton.SetActive(false);
-			NetworkManager.Instance.RequestRank();
+			NetworkManager.Instance.RequestRank(0, 5);
 		}
 
 		private void OnEnable() {
 			NetworkManager.Instance.OnPacketReceived += OnPacketReceived;
-		}
-
-		private void OnDisable() {
-			NetworkManager.Instance.OnPacketReceived -= OnPacketReceived;
 		}
 
 		private void OnPacketReceived(IPacket incoming) {
@@ -39,6 +32,9 @@ namespace PushCar.UI {
 					sb.AppendLine($"{i + 1}. {record.Id} - {record.Distance:F2}m");
 				}
 				_rankText.text = sb.ToString();
+
+				// 최초 1회만 불러오기
+				NetworkManager.Instance.OnPacketReceived -= OnPacketReceived;
 			}
 		}
 
