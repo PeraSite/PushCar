@@ -21,33 +21,35 @@ namespace PushCar {
 		}
 
 		private void Update() {
-			if (EventSystem.current.IsPointerOverGameObject()) return;
+			// 마우스가 UI 위에 있을 때는 입력 무시
+			if (!EventSystem.current.IsPointerOverGameObject()) {
+				if (Input.GetMouseButtonDown(0)) {
+					_lastClickedPosition = Input.mousePosition;
+				}
 
-			if (Input.GetMouseButtonDown(0)) {
-				_lastClickedPosition = Input.mousePosition;
+				if (Input.GetMouseButtonUp(0) && CanMove) {
+					Vector2 endPos = Input.mousePosition;
+					_swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
+					TargetX = CalculateFinalPosition(_swipeLength);
+
+					// Play audio
+					AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
+
+					// Make player can't move
+					CanMove = false;
+				}
 			}
 
-			if (Input.GetMouseButtonUp(0) && CanMove) {
-				Vector2 endPos = Input.mousePosition;
-				_swipeLength = (endPos.x - _lastClickedPosition.x) / Screen.width * _swipeMultiplier;
-				TargetX = CalculateFinalPosition(_swipeLength);
-
-				// Play audio
-				AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
-
-				// Make player can't move
-				CanMove = false;
-			}
-
+			// 이동 처리
 			if (!CanMove) {
 				var position = transform.position;
 				var newX = Mathf.Lerp(position.x, TargetX, Time.deltaTime);
 				transform.position = new Vector3(newX, position.y, position.z);
 			}
 
+			// 이동 후 멈췄으면 점수 전송
 			if (IsStopped() && !CanMove && !Stopped) {
 				Stopped = true;
-
 				NetworkManager.Instance.AddRecord(_swipeLength);
 			}
 		}
