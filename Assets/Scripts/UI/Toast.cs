@@ -29,7 +29,10 @@ namespace PushCar.UI {
 			_toastText.text = message;
 			_toast.DOKill();
 			DOTween.Sequence(_toast)
-				.OnStart(() => _toast.gameObject.SetActive(true))
+				.OnStart(() => {
+					_toast.gameObject.SetActive(true);
+					_toast.anchoredPosition = new Vector2(0f, 100f);
+				})
 				.Join(_toast.DOAnchorPosY(-30f, _animationTime))
 				.AppendInterval(_showTime)
 				.Append(_toast.DOAnchorPosY(100f, _animationTime))
