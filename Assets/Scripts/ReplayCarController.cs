@@ -1,11 +1,9 @@
 using System;
 using UnityEngine;
-using UnityEngine.EventSystems;
 
 namespace PushCar {
 	public class ReplayCarController : MonoBehaviour {
 		[SerializeField] private AudioClip _carSfx;
-		[SerializeField] private Transform _car;
 		[SerializeField] private Transform _flag;
 		[SerializeField] private ReplayCache _replayCache;
 
