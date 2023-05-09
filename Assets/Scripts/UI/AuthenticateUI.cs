@@ -6,7 +6,7 @@ namespace PushCar.UI {
 		[SerializeField] private TMP_InputField _idInput;
 		[SerializeField] private TMP_InputField _passwordInput;
 
-		public void Authenticate() {
+		public void Login() {
 			var id = _idInput.text;
 			var password = _passwordInput.text;
 
@@ -20,7 +20,24 @@ namespace PushCar.UI {
 				return;
 			}
 
-			NetworkManager.Instance.Authenticate(id, password);
+			NetworkManager.Instance.Login(id, password).Forget();
+		}
+
+		public void Register() {
+			var id = _idInput.text;
+			var password = _passwordInput.text;
+
+			if (string.IsNullOrEmpty(id)) {
+				Toast.Instance.Error("아이디를 입력해주세요!");
+				return;
+			}
+
+			if (string.IsNullOrEmpty(password)) {
+				Toast.Instance.Error("비밀번호를 입력해주세요!");
+				return;
+			}
+
+			NetworkManager.Instance.Register(id, password);
 		}
 	}
 }

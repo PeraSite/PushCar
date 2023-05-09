@@ -4,16 +4,16 @@ using System.IO;
 using System.Net;
 using System.Net.Security;
 using System.Net.Sockets;
-using System.Security.Cryptography;
-using System.Text;
 using Cysharp.Threading.Tasks;
 using PushCar.Common;
 using PushCar.Common.Extensions;
 using PushCar.Common.Packets.Client;
 using PushCar.Common.Packets.Server;
+using PushCar.Common.Utils;
 using PushCar.UI;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using Debug = UnityEngine.Debug;
 
 namespace PushCar {
 	public sealed class NetworkManager : MonoBehaviour {
@@ -29,6 +29,7 @@ namespace PushCar {
 		private ConcurrentQueue<IPacket> _packetQueue;
 
 		private Guid _token;
+		private string _salt;
 
 		private void Awake() {
 			_client = new TcpClient();
@@ -41,6 +42,9 @@ namespace PushCar {
 
 			Instance = this;
 			DontDestroyOnLoad(gameObject);
+
+			// 빈 salt 초기화
+			_salt = string.Empty;
 		}
 
 		private void OnDestroy() {
@@ -69,6 +73,11 @@ namespace PushCar {
 				case ServerAuthenticateSuccessPacket packet: {
 					_token = packet.Token;
 					SceneManager.LoadScene("Play");
+					break;
+				}
+				case ServerResponseSaltPacket packet: {
+					// 자신의 salt를 받았다면 저장
+					_salt = packet.Salt;
 					break;
 				}
 				case ServerAuthenticateFailPacket packet: {
@@ -132,9 +141,17 @@ namespace PushCar {
 			}, cancellationToken: this.GetCancellationTokenOnDestroy());
 		}
 
-		public void Authenticate(string id, string password) {
-			var encryptedPassword = SHA256(password);
-			SendPacket(new ClientAuthenticatePacket(id, encryptedPassword));
+		public void Register(string id, string password) {
+			var salt = CryptoUtil.GetUniqueString(32);
+			var encryptedPassword = CryptoUtil.SHA256(password + salt);
+			SendPacket(new ClientRegisterPacket(id, encryptedPassword, salt));
+		}
+
+		public async UniTaskVoid Login(string id, string password) {
+			SendPacket(new ClientRequestSaltPacket(id));
+			await UniTask.WaitUntil(() => !string.IsNullOrEmpty(_salt), PlayerLoopTiming.LastUpdate, cancellationToken: this.GetCancellationTokenOnDestroy());
+			var encryptedPassword = CryptoUtil.SHA256(password + _salt);
+			SendPacket(new ClientLoginPacket(id, encryptedPassword));
 		}
 
 		public void AddRecord(float swipeDistance) {
@@ -146,23 +163,13 @@ namespace PushCar {
 		}
 
 		private void SendPacket(IPacket packet) {
-			Debug.Log($"[C -> S] {packet}");
 			if (!_client.Connected) {
 				Toast.Instance.Error("서버에 연결되지 않았습니다!");
 				return;
 			}
 
+			Debug.Log($"[C -> S] {packet}");
 			_writer.Write(packet);
-		}
-
-		private static string SHA256(string data) {
-			var sha = new SHA256Managed();
-			var hash = sha.ComputeHash(Encoding.ASCII.GetBytes(data));
-			var sb = new StringBuilder();
-			foreach (var b in hash) {
-				sb.AppendFormat("{0:x2}", b);
-			}
-			return sb.ToString();
 		}
 
 		[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
