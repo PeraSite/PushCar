@@ -1,6 +1,7 @@
 ﻿using PushCar.Common.Models;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace PushCar.UI.Rank {
@@ -9,13 +10,15 @@ namespace PushCar.UI.Rank {
 		[SerializeField] private TextMeshProUGUI _distance;
 		[SerializeField] private TextMeshProUGUI _id;
 		[SerializeField] private Button _replayButton;
+		[SerializeField] private ReplayCache _replayCache;
 
 		public void Init(int rank, Record record) {
 			_rank.text = $"{rank}";
 			_distance.text = $"{record.Distance:F2}m";
 			_id.text = record.Id;
 			_replayButton.onClick.AddListener(() => {
-				//TODO
+				_replayCache.Record = record;
+				SceneManager.LoadScene("Replay");
 			});
 		}
 	}

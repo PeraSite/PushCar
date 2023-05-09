@@ -354,6 +354,7 @@ MonoBehaviour:
   _distance: {fileID: 8817007992256369498}
   _id: {fileID: 3082872252881995172}
   _replayButton: {fileID: 3082872251015935775}
+  _replayCache: {fileID: 11400000, guid: 5569c51b023009f41bdb660f545b3339, type: 2}
 --- !u!1 &3082872251729706836
 GameObject:
   m_ObjectHideFlags: 0
