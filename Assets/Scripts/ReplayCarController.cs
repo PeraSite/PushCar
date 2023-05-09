@@ -16,8 +16,6 @@ namespace PushCar {
 			// Play audio
 			AudioSource.PlayClipAtPoint(_carSfx, this.transform.position);
 
-			Debug.Log(_replayCache.Record.Distance);
-
 			// 목표 X축 위치 설정
 			TargetX = _flag.transform.position.x - _replayCache.Record.Distance;
 		}
