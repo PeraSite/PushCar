@@ -1396,6 +1396,7 @@ MonoBehaviour:
   _carSfx: {fileID: 8300000, guid: f5d0bd56dabf24f438c72270c6e91b91, type: 3}
   _car: {fileID: 848820241}
   _flag: {fileID: 642836328}
+  Clicked: 0
   CanMove: 0
   Stopped: 0
   TargetX: 0
@@ -2977,9 +2978,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_text: '1. OOO - 3.14
-
-'
+  m_text: 
   m_isRightToLeft: 0
   m_fontAsset: {fileID: 11400000, guid: 6fadeb7ff58378e41ade58f7eda98095, type: 2}
   m_sharedMaterial: {fileID: -744124113437511533, guid: 6fadeb7ff58378e41ade58f7eda98095, type: 2}
